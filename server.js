@@ -67,8 +67,39 @@ app.get("/api/get", (req, res) => {
 
 //store a link
 app.post("/api/store", (req, res) => {
-    collection.insertOne(req.body, (error, result) => {
-        if(error) return res.status(500).send(error)
-        res.send(result.result);
-    });
+    collection.find( {link: req.body.link}, {})
+        .toArray()
+        .then(items => {
+            if(items.length !== 0){
+                res.json({
+                    message: 'Error: There is such link in database',
+                    result: false
+                })
+            }else{
+                collection.insertOne(req.body, (error, result) => {
+                    if(error) return res.status(500).send(error)
+                    res.json({
+                        message: 'The link was successfully added to database',
+                        result: true
+                    })
+                });
+            }
+        })
+        .catch(err => res.json({result: err}))
+
+});
+
+//check if there is such a link
+app.post("/api/check", (req, res) => {
+
+    collection.find( {link: req.body.link}, {})
+        .toArray()
+        .then(items => {
+            if(items.length !== 0){
+                res.json({result: true})
+            }else{
+                res.json({result: false})
+            }
+        })
+        .catch(err => res.json({result: err}))
 });
